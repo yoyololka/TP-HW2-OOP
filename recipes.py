@@ -24,3 +24,38 @@ class Ingredient:
         if not isinstance(other, Ingredient):
             return False
         return self.name == other.name and self.unit == other.unit
+
+
+class Recipe:
+    def __init__(self, title: str, ingredients: list = None):
+        self.title = title
+        self.ingredients = ingredients if ingredients is not None else []
+
+    def add_ingredient(self, ingredient: Ingredient):
+        for ing in self.ingredients:
+            if ing == ingredient:
+                ing.quantity += ingredient.quantity
+                return
+        self.ingredients.append(ingredient)
+
+    @staticmethod
+    def is_valid_ratio(ratio):
+        return isinstance(ratio, (int, float)) and ratio > 0
+
+    def scale(self, ratio: float):
+        if not Recipe.is_valid_ratio(ratio):
+            raise ValueError("Коэффициент должен быть положительным числом")
+        new_recipe = Recipe(self.title)
+        for ing in self.ingredients:
+            new_ingredient = Ingredient(ing.name, ing.quantity * ratio, ing.unit)
+            new_recipe.ingredients.append(new_ingredient)
+        return new_recipe
+
+    def __len__(self):
+        return len(self.ingredients)
+
+    def __str__(self):
+        result = self.title + ":\n"
+        for ing in self.ingredients:
+            result += "  - " + str(ing) + "\n"
+        return result
