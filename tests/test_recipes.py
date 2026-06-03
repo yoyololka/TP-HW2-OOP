@@ -1,4 +1,4 @@
-from recipes import Ingredient, Recipe
+from recipes import Ingredient, Recipe, ShoppingList
 import pytest
 
 
@@ -106,3 +106,88 @@ def test_recipe_len():
     recipe.add_ingredient(Ingredient("Мука", 500, "г"))
     recipe.add_ingredient(Ingredient("Томаты", 200, "г"))
     assert len(recipe) == 2
+
+
+def test_shopping_list_add_recipe():
+    recipe = Recipe("Пицца")
+    recipe.add_ingredient(Ingredient("Мука", 500, "г"))
+    sl = ShoppingList()
+    sl.add_recipe(recipe, 2)
+    assert len(sl._items) == 1
+
+
+def test_shopping_list_add_recipe_invalid_portions_raises():
+    recipe = Recipe("Пицца")
+    sl = ShoppingList()
+    with pytest.raises(ValueError):
+        sl.add_recipe(recipe, 0)
+
+
+def test_shopping_list_add_recipe_negative_portions_raises():
+    recipe = Recipe("Пицца")
+    sl = ShoppingList()
+    with pytest.raises(ValueError):
+        sl.add_recipe(recipe, -1)
+
+
+def test_shopping_list_remove_recipe():
+    recipe = Recipe("Пицца")
+    recipe.add_ingredient(Ingredient("Мука", 500, "г"))
+    sl = ShoppingList()
+    sl.add_recipe(recipe, 1)
+    sl.remove_recipe("Пицца")
+    assert len(sl._items) == 0
+
+
+def test_shopping_list_remove_nonexistent_recipe():
+    sl = ShoppingList()
+    sl.remove_recipe("Несуществующий")
+    assert len(sl._items) == 0
+
+
+def test_shopping_list_get_list_sums_same_ingredients():
+    pizza = Recipe("Пицца")
+    pizza.add_ingredient(Ingredient("Мука", 500, "г"))
+    pasta = Recipe("Паста")
+    pasta.add_ingredient(Ingredient("Мука", 200, "г"))
+    sl = ShoppingList()
+    sl.add_recipe(pizza, 1)
+    sl.add_recipe(pasta, 1)
+    result = sl.get_list()
+    assert len(result) == 1
+    assert result[0].quantity == 700.0
+
+
+def test_shopping_list_get_list_sorted():
+    recipe = Recipe("Пицца")
+    recipe.add_ingredient(Ingredient("Томаты", 200, "г"))
+    recipe.add_ingredient(Ingredient("Мука", 500, "г"))
+    sl = ShoppingList()
+    sl.add_recipe(recipe, 1)
+    result = sl.get_list()
+    assert result[0].name == "Мука"
+    assert result[1].name == "Томаты"
+
+
+def test_shopping_list_add_combines_lists():
+    pizza = Recipe("Пицца")
+    pizza.add_ingredient(Ingredient("Мука", 500, "г"))
+    pasta = Recipe("Паста")
+    pasta.add_ingredient(Ingredient("Яйца", 2, "шт"))
+    sl1 = ShoppingList()
+    sl1.add_recipe(pizza, 1)
+    sl2 = ShoppingList()
+    sl2.add_recipe(pasta, 1)
+    sl3 = sl1 + sl2
+    assert len(sl3._items) == 2
+
+
+def test_shopping_list_add_does_not_change_originals():
+    pizza = Recipe("Пицца")
+    pizza.add_ingredient(Ingredient("Мука", 500, "г"))
+    sl1 = ShoppingList()
+    sl1.add_recipe(pizza, 1)
+    sl2 = ShoppingList()
+    sl1 + sl2
+    assert len(sl1._items) == 1
+    assert len(sl2._items) == 0
